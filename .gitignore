@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.joblib
+mlflow.db
+mlruns/
+hf_token
+.env
+.DS_Store
+Xtrain.csv
+Xtest.csv
+ytrain.csv
+ytest.csv

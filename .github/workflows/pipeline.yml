@@ -1,0 +1,78 @@
+name: SuperKart Sales Prediction MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  register-dataset:
+    name: Register dataset on Hugging Face
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r superkart_project/requirements.txt
+      - name: Upload dataset to the Hugging Face Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python superkart_project/model_building/data_register.py
+
+  data-prep:
+    name: Clean, engineer and split the data
+    needs: register-dataset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r superkart_project/requirements.txt
+      - name: Run data preparation
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python superkart_project/model_building/prep.py
+
+  model-training:
+    name: Tune, track and register the model
+    needs: data-prep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r superkart_project/requirements.txt
+      - name: Train the model with MLflow tracking
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python superkart_project/model_building/train.py
+      - name: Upload the MLflow tracking database as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-tracking-db
+          path: mlflow.db
+          retention-days: 14
+
+  deploy-hosting:
+    name: Deploy the front end to Hugging Face Spaces
+    needs: [register-dataset, data-prep, model-training]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r superkart_project/requirements.txt
+      - name: Push the app to the Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python superkart_project/hosting/hosting_gradio.py
