@@ -1,10 +1,10 @@
-# Only what the model itself needs. gradio, spaces, torch, huggingface_hub and numpy are installed
-# by the Space image itself (gradio[oauth,mcp], spaces), so pinning them here makes the Space build
-# fail on a resolver conflict.
+# gradio, spaces, torch, huggingface_hub and numpy are installed by the Space image itself, so
+# pinning them here makes the build fail on a resolver conflict - leave them out.
 #
-# scikit-learn and xgboost match the versions the model was trained with, so the serialised
-# pipeline unpickles without a version warning.
-pandas==3.0.6
-scikit-learn==1.9.1
-xgboost==3.4.1
+# scikit-learn and xgboost MUST match the versions that trained the model now on the Hub, which is
+# the CI runner using superkart_project/requirements.txt. A mismatch fails at joblib.load with
+# "Can't get attribute '_RemainderColsList'".
+scikit-learn==1.6.1
+xgboost==2.1.4
+pandas
 joblib
