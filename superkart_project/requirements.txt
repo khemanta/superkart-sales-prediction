@@ -4,5 +4,8 @@ scikit-learn==1.6.1
 xgboost==2.1.4
 joblib==1.4.2
 mlflow==3.0.1
+# MLflow 3's SQLite tracking store imports FallbackAsyncAdaptedQueuePool, which only exists in
+# SQLAlchemy 2.x. Without this pin the resolver can settle on 1.4 and train.py dies on import.
+SQLAlchemy>=2.0,<3
 huggingface_hub==0.32.6
 datasets==3.6.0
